@@ -8,9 +8,17 @@
 </h:head>
 
 <h:body>
-    <h:form>
-        <p:dataTable id="dicPanel" var="word" value="#{basicView.words}" emptyMessage="No cars found with given criteria" filteredValue="#{basicView.filteredWords}" rowKey="#{word.id}" selectionMode="single">
-            <p:ajax event="rowSelect" listener="#{basicView.onRowSelect}"/>
+    <h:form id="mainForm">
+
+        <p:dataTable id="dicPanel" var="word" value="#{basicView.words}"
+                     emptyMessage="По заданному критерию слов не найдено"
+                     filteredValue="#{basicView.filteredWords}"
+                     selection="#{basicView.selectedRow}"
+                     rowKey="#{word.id}"
+                     selectionMode="single"
+                     paginator="true" rows="10"
+                     rowsPerPageTemplate="5,10,15" paginatorPosition="bottom">
+            <p:ajax event="rowSelect" listener="#{basicView.onRowSelect}" update="dicPanel"/>
 
             <p:column filterBy="#{word.word}" headerText="Слово" filterMatchMode="contains">
                 <h:outputText value="#{word.word}" />
@@ -26,27 +34,45 @@
 
             <p:column headerText="+">
                 <f:facet name="header">
-                    <p:commandButton value="Add" icon="fa fa-fw fa-plus" type="button" onclick="PF('dlg2').show();" />
+                    <p:commandButton value="Добавить слово" icon="fa fa-fw fa-plus" type="button" onclick="PF('dlg2').show();" />
                 </f:facet>
-                <p:commandButton icon="fa fa-fw fa-edit" type="button"/>
-                <p:commandButton icon="fa fa-fw fa-trash" type="button" update="dicPanel" action="#{basicView.removeWord()}"/>
+                <p:commandButton icon="fa fa-fw fa-edit" type="submit" actionListener="#{basicView.setWordEJBSelectedRow(word)}" update="mainForm:dlg3id" oncomplete="PF('dlg3').show();"/>
+                <p:commandButton icon="fa fa-fw fa-trash" type="submit" actionListener="#{basicView.removeWord(word)}" update="dicPanel"/>
             </p:column>
         </p:dataTable>
 
-        <p:dialog header="Add word" widgetVar="dlg2" modal="true" height="150" width="500" hideEffect="clip">
+        <p:dialog header="Добавить слово" widgetVar="dlg2" modal="true" height="150" width="500" hideEffect="clip">
             <p:ajax event="close" update="dicPanel" />
             <h:form>
                 <h:panelGrid columns="2" cellpadding="5">
-                    <h:outputLabel for="name" value="Name:" style="font-weight:bold" />
-                    <p:inputText id="name" value="#{basicView.text}" />
-                    <h:outputLabel for="status" value="Status:" style="font-weight:bold" />
-                    <p:inputText id="status" value="#{basicView.status}" />
-                    <p:commandButton value="Submit" action="#{basicView.addWord}" icon="pi-check" onclick="PF('dlg2').hide();"/>
+                    <h:outputLabel for="name" value="Слово:" style="font-weight:bold" />
+                    <p:inputText id="name" value="#{basicView.text2}" action=""/>
+                    <h:outputLabel for="status" value="Статус:" style="font-weight:bold" />
+                    <p:selectOneMenu id="status" value="#{basicView.status}">
+                        <f:selectItem itemLabel="ACTIVE" itemValue="ACTIVE" />
+                        <f:selectItem itemLabel="INACTIVE" itemValue="INACTIVE" />
+                    </p:selectOneMenu>
+                    <p:commandButton value="Сохранить" action="#{basicView.addWord}" icon="fa fa-check" onclick="PF('dlg2').hide();"/>
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <p:dialog id="dlg3id" header="Редактировать слово" widgetVar="dlg3" modal="true" height="150" width="500" hideEffect="clip">
+            <p:ajax event="close" update="mainForm:dicPanel" />
+            <h:form>
+                <h:panelGrid columns="2" cellpadding="5">
+                    <h:outputLabel for="name" value="Слово:" style="font-weight:bold" />
+                    <p:inputText id="name" value="#{basicView.wordEJBSelectedRow.word}"/>
+                    <h:outputLabel for="status" value="Статус:" style="font-weight:bold" />
+                    <p:selectOneMenu id="status" value="#{basicView.wordEJBSelectedRow.status}">
+                        <f:selectItem itemLabel="ACTIVE" itemValue="ACTIVE" />
+                        <f:selectItem itemLabel="INACTIVE" itemValue="INACTIVE" />
+                    </p:selectOneMenu>
+                    <p:commandButton value="Сохранить" action="#{basicView.updateSelectedRow}" icon="fa fa-check" onclick="PF('dlg3').hide();"/>
                 </h:panelGrid>
             </h:form>
         </p:dialog>
 
     </h:form>
-
 </h:body>
 </html>

@@ -1,23 +1,16 @@
 package ru.alibaev.EJB;
 
-import org.primefaces.event.SelectEvent;
-import org.primefaces.model.SelectableDataModel;
 import ru.alibaev.entities.Words;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import javax.ejb.*;
 import javax.persistence.*;
 import java.util.List;
 
 @Stateless
 public class WordsEJB {
 
-
+    public Words selectedRow;
+    public boolean toUpdate = false;
 
     @PersistenceContext(unitName = "postgresPU")
     EntityManager em;
@@ -33,12 +26,28 @@ public class WordsEJB {
     }
 
     public void createWord(Words word) {
-        em.merge(word);
+        em.persist(word);
     }
 
     public void removeWord(int id) {
         Query query = em.createQuery("DELETE FROM Words w WHERE w.id = :id");
         query.setParameter("id", id).executeUpdate();
+    }
+
+    public void updateWord (Words word) {
+        em.createQuery("UPDATE Words w SET w.word = :word, w.status = :status, w.length = :length WHERE w.id = :id")
+        .setParameter("id", word.id)
+        .setParameter("word", word.word)
+        .setParameter("status", word.status)
+        .setParameter("length", word.length).executeUpdate();
+    }
+
+    public Words getSelectedRow() {
+        return selectedRow;
+    }
+
+    public void setSelectedRow(Words selectedRow) {
+        this.selectedRow = selectedRow;
     }
 
 }

@@ -38,7 +38,6 @@ public class Words {
         this.status = status;
     }
 
-
     public int getLength() {
         return length;
     }

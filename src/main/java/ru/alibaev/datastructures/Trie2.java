@@ -11,7 +11,6 @@ import javax.annotation.PostConstruct;
 import javax.ejb.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 @ManagedBean
 @ApplicationScoped
@@ -23,29 +22,27 @@ public class Trie2 implements TrieInterface {
 
     private HashMap<Character, TrieNode> children = new HashMap<Character, TrieNode>();
 
-    public TrieNode getRoot() {
-        return root;
-    }
-
     private TrieNode root;
-    @Inject
-    WordsEJB wordsEJB;
+    @Inject WordsEJB wordsEJB;
 
-//    @Lock(LockType.WRITE)
     @PostConstruct
     public void initialize() {
         root = new TrieNode();
         children = root.getChildren();
+        // Получаем из базы данных слова со статусом ACTIVE
         List<String> words = wordsEJB.getActiveWords().stream().map(Words::getWord).collect(Collectors.toList());
         for(String s : words) {
             insertWord(s);
         }
     }
 
-    // Inserts a word into the trie.
+    public TrieNode getRoot() {
+        return root;
+    }
+
+    // Вставляем слова в наше дерево
     @Override
     public void insertWord(String word) {
-
         HashMap<Character, TrieNode> localChildren = new HashMap<>();
         localChildren = (HashMap<Character, TrieNode>) children.clone();
         boolean rootPlace = true;
@@ -77,23 +74,15 @@ public class Trie2 implements TrieInterface {
                     tempChildren = tempChildren.get(c).getChildren();
                 }
             }
-
             localChildren = t.getChildren();
-
-            //set leaf node
+            // Помечаем лепесток дерева (конец слова)
             if(i==word.length()-1)
                 t.setLeaf(true);
         }
     }
 
-
-//    @Lock(LockType.WRITE)
-//    public void setStates(String country, List<String> states) {
-//        countryStatesMap.put(country, states);
-//    }
-
+    // Получаем слова по заданному префиксу
     @Override
-    @Lock(LockType.READ)
     public List<String> getWordsByPrefix(String prefix) {
         initialize();
         HashMap<Character, TrieNode> localChildren = new HashMap<>();
@@ -103,7 +92,6 @@ public class Trie2 implements TrieInterface {
         List<String> words = new ArrayList<>();
         for(int i=0; i<prefix.length(); i++){
             char c = prefix.charAt(i);
-
             if(localChildren.containsKey(c)){
                 t = localChildren.get(c);
                 localChildren = t.getChildren();
@@ -121,11 +109,11 @@ public class Trie2 implements TrieInterface {
         return null;
     }
 
-
+    // Рекурсивно получаем слова по заданному узлу дерева
+    @Override
     public List<String> getWordsByTrieNode (TrieNode trieNode, String tempWord) {
         List<String> wordsByPrefix = new ArrayList<>();
         Set<Map.Entry<Character, TrieNode>> localChildrenSet = trieNode.getChildren().entrySet();
-
         for (Map.Entry<Character, TrieNode> entry : localChildrenSet) {
             if(entry.getValue().isLeaf()) {
                 wordsByPrefix.add(tempWord + entry.getKey());
