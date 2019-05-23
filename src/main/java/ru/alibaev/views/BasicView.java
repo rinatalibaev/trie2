@@ -1,3 +1,5 @@
+package ru.alibaev.views;
+
 import org.primefaces.event.SelectEvent;
 import ru.alibaev.EJB.WordsEJB;
 import ru.alibaev.datastructures.Trie2;
@@ -5,6 +7,7 @@ import ru.alibaev.entities.Words;
 
 import javax.faces.bean.ManagedBean;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,7 +36,7 @@ public class BasicView {
         wordsEJB.createWord(newWord);
     }
 
-    public List<String> completeText(String query) {
+    public List<String> completeText(@NotNull String query) {
         final String regex = "[А-яЁё]+";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(query);
@@ -43,9 +46,6 @@ public class BasicView {
         }
 
         List<String> resultList = trie2.getWordsByPrefix(query);
-        for (String s : resultList) {
-            System.out.println(s);
-        }
         return resultList;
     }
 
